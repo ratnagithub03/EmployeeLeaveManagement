@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\AttendanceController;
 use App\Models\User;
 use App\Models\Leave;
 use App\Http\Middleware\CheckAuth;
@@ -77,6 +78,7 @@ Route::middleware([CheckAuth::class,Revalidate::class])->group(function(){
         return view('changePassword');
     });
     Route::post('/changePassword',[AuthController::class,'changePassword']);
+
     Route::get('/employeeHome', function(){
         return view('employee');
     })->middleware(EmployeeRole::class);
@@ -92,10 +94,23 @@ Route::middleware([CheckAuth::class,Revalidate::class])->group(function(){
         return view('applyLeave');
     })->middleware(EmployeeRole::class);
     Route::post('/applyLeave',[AuthController::class,'applyLeave']);
-    
     Route::get('/applyLeaveByEmployee',function(){
         return view('applyLeaveByEmployee');
     })->middleware(EmployeeRole::class);
+
+    Route::get('/attendance',function(){
+        return view('attendance');
+    })->middleware(EmployeeRole::class);
+    Route::post('/attendance',[AttendanceController::class,'attendance']);
+
+    Route::middleware('auth')->group(function(){ //extra add
+        Route::get('/attendance', [AttendanceController::class, 'getAttendanceRecords'])->name('attendance.index');
+        Route::post('/attendance/checkin', [AttendanceController::class, 'checkIn'])->name('attendance.checkin');
+        Route::post('/attendance/checkout', [AttendanceController::class, 'checkOut'])->name('attendance.checkout');
+
+    });
+
+
     Route::get('/appliedLeave',function(){
         return view('appliedLeave');
     })->middleware(AdminRole::class);

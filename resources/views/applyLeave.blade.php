@@ -1,12 +1,12 @@
 @extends('employeelayout.default')
-
+ 
 @section('content')
-
-<script src="https://code.jquery.com/jquery-3.7.1.js" 
-        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" 
+ 
+<script src="https://code.jquery.com/jquery-3.7.1.js"
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
         crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-
+ 
 <style type="text/css">
     body {
         font-family: Arial, sans-serif;
@@ -127,7 +127,7 @@
         }
     }
 </style>
-
+ 
 <div id="message"></div>
 <div class="form-container">
     <h2>Leave Application</h2>
@@ -137,40 +137,40 @@
     <form enctype="multipart/form-data" id="form" method="post">
         @csrf
         <input type="hidden" name="user_id" id="user_id" value="{{ Session::get('userid') }}">
-
+ 
         <label for="leave_type">Leave Type</label>
         <select name="leave_type" id="leave_type">
             <option hidden>Select Leave Type</option>
             <option value="cl">Casual Leave</option>
             <option value="ml">Medical Leave</option>
         </select>
-
+ 
         <label for="from_date">From (mm/dd/yyyy)</label>
         <div class="input-group">
             <input type="text" name="from_date" id="from_date" placeholder="mm/dd/yyyy">
             <i class="fas fa-calendar-alt" onclick="document.getElementById('from_date').focus();"></i>
         </div>
-
+ 
         <label for="to_date">To (mm/dd/yyyy)</label>
         <div class="input-group">
             <input type="text" name="to_date" id="to_date" placeholder="mm/dd/yyyy">
             <i class="fas fa-calendar-alt" onclick="document.getElementById('to_date').focus();"></i>
         </div>
-
+ 
         <label for="leave_message">Reason for Leave</label>
         <textarea name="leave_message" id="leave_message" rows="3"></textarea>
-
+ 
         <div id="doc-row" class="h">
             <label for="document">Upload Medical Certificate</label>
             <input type="file" name="document" id="document" class="h">
         </div>
-
+ 
         <input type="text" name="days" id="days" readonly placeholder="Total Days">
-
+ 
         <input type="submit" name="btn" value="Apply" id="btn">
     </form>
 </div>
-
+ 
 <script type="text/javascript">
     $(document).ready(function () {
         $('#leave_type').on('change', function () {
@@ -183,7 +183,7 @@
                 $('#document').addClass('h');
             }
         });
-
+ 
         $('#form').submit(function (event) {
             event.preventDefault();
             $.ajax({
@@ -216,7 +216,7 @@
                 }
             });
         });
-
+ 
         $('#to_date').change(function () {
             let fromDate = $('#from_date').val();
             let toDate = $('#to_date').val();
@@ -230,48 +230,58 @@
                 $('#days').val(Math.round(diff + 1));
             }
         });
-
+ 
         $('#voice-command').click(function () {
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
-
+ 
             recognition.onstart = function () {
                 $('#voice-command').addClass('active');
             };
-            
+ 
             recognition.onresult = function (event) {
                 $('#voice-command').removeClass('active');
                 const transcript = event.results[0][0].transcript.toLowerCase();
-
+ 
                 console.log(transcript);
-
+ 
                 if (transcript.includes('casual leave') || transcript.includes('casual')) {
                     $('#leave_type').val('cl').change();
                 } else if (transcript.includes('medical leave') || transcript.includes('medical')) {
                     $('#leave_type').val('ml').change();
                 }
-
-                const dateRegex = /from (\d{1,2}\/\d{1,2}\/\d{4}) to (\d{1,2}\/\d{1,2}\/\d{4})/i;
+ 
+                const dateRegex = /from (\d{1,2})(st|nd|rd|th)? (\w+ \d{4}) to (\d{1,2})(st|nd|rd|th)? (\w+ \d{4})/i;
                 const match = transcript.match(dateRegex);
-                if (match) {
-                    $('#from_date').val(match[1]);
-                    $('#to_date').val(match[2]);
-
-                    const start = new Date(match[1]);
-                    const end = new Date(match[2]);
-                    const diff = (end - start) / (1000 * 60 * 60 * 24);
-                    $('#days').val(Math.round(diff + 1));
-                }
+ 
+            if (match) {
+                const fromDate = match[1] + ' ' + match[3];
+                const toDate = match[4] + ' ' + match[6];
+ 
+                const start = new Date(fromDate);
+                const end = new Date(toDate);
+ 
+ 
+                const formatDate = (date) => {
+                    const d = new Date(date);
+                    const month = ('0' + (d.getMonth() + 1)).slice(-2);
+                    const day = ('0' + d.getDate()).slice(-2);
+                    const year = d.getFullYear();
+                    return `${month}-${day}-${year}`;
+                };
+ 
+                $('#from_date').val(formatDate(start));
+                $('#to_date').val(formatDate(end));
+ 
+                const diff = (end - start) / (1000 * 60 * 60 * 24);
+                $('#days').val(Math.round(diff + 1));
             };
-
-            recognition.onerror = function () {
-                $('#voice-command').removeClass('active');
-                alert('Voice recognition error.');
-            };
-
+        };
+ 
             recognition.start();
         });
     });
 </script>
-
+ 
 @stop
+ 

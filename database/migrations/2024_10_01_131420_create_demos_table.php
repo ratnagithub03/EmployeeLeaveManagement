@@ -12,8 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('demos', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->id(); // Primary key
+            $table->string('name'); // Demo name
+            $table->text('description')->nullable(); // Optional description
+            $table->boolean('status')->default(true); // Active or inactive status
+            $table->timestamps(); // Created at and updated at timestamps
         });
     }
 
@@ -22,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('demos');
+        Schema::dropIfExists('demos'); // Drops the table
     }
 };

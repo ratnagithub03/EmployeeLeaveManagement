@@ -81,6 +81,7 @@
                 <li><a href="/leaveStatus">Leave Status</a></li>
                 <li><a href="/changePassword">Change Password</a></li>
                 <li><a href="/editProfile">Edit Profile</a></li>
+                <li><a href="/attendance">Attendance</a></li>
                 <li><a href="/logout">Logout</a></li>
             </ul>
         </nav>
