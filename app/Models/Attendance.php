@@ -10,20 +10,27 @@ class Attendance extends Model
 {
     use HasFactory;
 
+    protected $table = 'attendances';
+
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = [
-        // 'employee_id',
-        'user_id',
-        // 'check_in_time',
-        'check_in',
-        'check_out',
-        'date',
-        'status', // e.g., 'Present', 'Absent', 'Half-day'
-    ];
+    // protected $fillable = [
+        // // 'employee_id',
+        // 'user_id',
+        // // 'check_in_time',
+        // 'check_in',
+        // 'check_out',
+        // 'date',
+        // 'status', // e.g., 'Present', 'Absent', 'Half-day'
 
-    /**
+        protected $fillable = ['user_id', 'check_in', 'check_out'];
+
+        //   protected $dates = ['check_in', 'check_out'];
+}
+    
+
+        /**
      * Accessor for check-in time (formatted).
      */
     public function getCheckInTimeAttribute($value)
@@ -60,6 +67,23 @@ class Attendance extends Model
         ]);
     }
 
+
+    public function up()
+{
+    Schema::create('attendances', function (Blueprint $table) {
+        $table->id();
+        $table->unsignedBigInteger('user_id');
+        $table->date('date');
+        $table->time('check_in')->nullable();
+        $table->time('check_out')->nullable();
+        $table->integer('working_hours')->nullable();
+        $table->timestamps();
+
+        $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+    });
+}
+
+
     /**
      * Update attendance with check-out time.
      */
@@ -77,4 +101,9 @@ class Attendance extends Model
 
         return $attendance;
     }
+    public function down()
+    {
+        Schema::dropIfExists('attendances');
+    }
+
 }

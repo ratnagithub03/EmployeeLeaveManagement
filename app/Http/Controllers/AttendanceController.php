@@ -4,56 +4,81 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Attendance;
-use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
-    public function getAttendanceRecords(Request $request)
+    public function checkIn()
     {
-        // Ensure the user is authenticated
-        $userId = Auth::id();
+        try {
 
-        // Retrieve all attendance records for the logged-in user
-        $attendance = Attendance::where('user_id', $userId)->get();
+            $user = auth()->user(); // Ensure user is authenticated
+            // $today = Carbon::today()->format('Y-m-d');
 
-        // Return the attendance records as JSON
-        return response()->json($attendance);
-    }
+            // Check if the user has already checked in today
+            // $existingAttendance = Attendance::where('user_id', $user->id)
+            //     ->where('date', $today)
+            //     ->toSql();
+            // print_r("hry"); exit;
+            $existingAttendance = Attendance::getQuery()->toSql();
+            dd($existingAttendance); 
+            
 
-    public function checkIn(Request $request)
-    {
-        $userId = Auth::id();
+            if ($existingAttendance) {
+                return response()->json(['message' => 'Already Checked In!'], 400);
+            }
 
-        $existingRecord = Attendance::where('user_id', $userId)
-            ->whereNull('check_out')
-            ->first();
+            // Add a new check-in record
+            $attendance = Attendance::create([
+                'user_id' => $user->id,
+                'date' => $today,
+                'check_in' => Carbon::now()->format('H:i:s'),
+                'status' => 'Present', // Default status
+            ]);
 
-        if ($existingRecord) {
-            return response()->json(['message' => 'You are already checked in'], 400);
+            return response()->json(['message' => 'Check-In Successful!', 'data' => $attendance]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Check-In Failed!', 'error' => $e->getMessage()], 500);
         }
-
-        Attendance::create([
-            'user_id' => $userId,
-            'check_in' => now(),
-        ]);
-
-        return response()->json(['message' => 'Check-in successful']);
     }
 
     public function checkOut(Request $request)
     {
-        $userId = Auth::id();
+        try {
+            $user = auth()->user(); // Ensure user is authenticated
+            $today = Carbon::today()->format('Y-m-d');
 
-        $attendance = Attendance::where('user_id', $userId)
-            ->whereNull('check_out')
-            ->first();
+            // Find today's attendance record
+            $attendance = Attendance::where('user_id', $user->id)
+                ->where('date', $today)
+                ->first();
 
-        if (!$attendance) {
-            return response()->json(['message' => 'No active check-in found'], 400);
+            if (!$attendance) {
+                return response()->json(['message' => 'No Check-In record found.'], 404);
+            }
+
+            // Update the check-out time
+            $attendance->update([
+                'check_out' => Carbon::now()->format('H:i:s'),
+            ]);
+
+            return response()->json(['message' => 'Check-Out Successful!', 'data' => $attendance]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Check-Out Failed!', 'error' => $e->getMessage()], 500);
         }
+    }
 
-        $attendance->update(['check_out' => now()]);
+    public function list()
+    {
+        try {
+            $user = auth()->user(); // Ensure user is authenticated
+            $attendance = Attendance::where('user_id', $user->id)
+                ->orderBy('date', 'desc')
+                ->get();
 
-        return response()->json(['message' => 'Check-out successful']);
+            return response()->json($attendance, 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error fetching attendance!', 'error' => $e->getMessage()], 500);
+        }
     }
 }

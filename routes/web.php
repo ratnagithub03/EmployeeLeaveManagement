@@ -101,14 +101,19 @@ Route::middleware([CheckAuth::class,Revalidate::class])->group(function(){
     Route::get('/attendance',function(){
         return view('attendance');
     })->middleware(EmployeeRole::class);
-    Route::post('/attendance',[AttendanceController::class,'attendance']);
+    Route::post('/attendance/checkin', [AttendanceController::class, 'checkIn'])->name('attendance.checkin');
+    Route::post('/attendance/checkout', [AttendanceController::class, 'checkOut'])->name('attendance.checkout');
 
-    Route::middleware('auth')->group(function(){ //extra add
-        Route::get('/attendance', [AttendanceController::class, 'getAttendanceRecords'])->name('attendance.index');
-        Route::post('/attendance/checkin', [AttendanceController::class, 'checkIn'])->name('attendance.checkin');
-        Route::post('/attendance/checkout', [AttendanceController::class, 'checkOut'])->name('attendance.checkout');
+    
+    Route::get('/attendance/list', [AttendanceController::class, 'list'])->name('attendance.list');
 
-    });
+
+    // Route::middleware('auth')->group(function(){ //extra add
+    //     Route::get('/attendance', [AttendanceController::class, 'getAttendanceRecords'])->name('attendance.index');
+    //     Route::post('/attendance/checkin', [AttendanceController::class, 'checkIn'])->name('attendance.checkin');
+    //     Route::post('/attendance/checkout', [AttendanceController::class, 'checkOut'])->name('attendance.checkout');
+
+    // });
 
 
     Route::get('/appliedLeave',function(){
